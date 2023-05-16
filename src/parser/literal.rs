@@ -5,6 +5,15 @@ pub enum Literal {
     String(StringLit),
 }
 
+pub fn literal(input: &str) -> IResult<&str, Literal> {
+    if let Ok((input, lit)) = integer(input) {
+        Ok((input, Literal::Integer(lit)))
+    } else {
+        let (input, lit) = string(input)?;
+        Ok((input, Literal::String(lit)))
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct IntegerLit(i64);
 
