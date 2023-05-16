@@ -3,6 +3,7 @@ use nom::IResult;
 use crate::parser::{
     come_from::{come_from, ComeFrom},
     equality::{equality, Equality},
+    identifier::{identifier, Identifier},
     literal::{literal, Literal},
     print::{print, Print},
 };
@@ -12,6 +13,7 @@ pub enum Expression {
     Equality(Equality),
     ComeFrom(ComeFrom),
     Print(Print),
+    Identifier(Identifier),
     Literal(Literal),
 }
 
@@ -22,6 +24,8 @@ pub fn expression(input: &str) -> IResult<&str, Expression> {
         Ok((input, Expression::ComeFrom(cf)))
     } else if let Ok((input, p)) = print(input) {
         Ok((input, Expression::Print(p)))
+    } else if let Ok((input, ident)) = identifier(input) {
+        Ok((input, Expression::Identifier(ident)))
     } else {
         let (input, eq) = literal(input)?;
         Ok((input, Expression::Literal(eq)))
