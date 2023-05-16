@@ -28,5 +28,5 @@ pub fn integer(input: &str) -> IResult<&str, IntegerLit> {
 }
 
 pub fn string(input: &str) -> IResult<&str, StringLit> {
-    Ok((input, StringLit(input.to_owned())))
+    Ok(("", StringLit(input.to_owned())))
 }
