@@ -1,5 +1,6 @@
 use nom::{bytes::complete::take_while, IResult};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Literal {
     Integer(IntegerLit),
     String(StringLit),
