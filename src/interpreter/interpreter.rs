@@ -84,15 +84,15 @@ impl InterpreterState {
                 value
             }
             Expression::BinaryOp(op) => {
-                let lhs = self.eval_expression(&op.lhs).to_integer();
-                let rhs = self.eval_expression(&op.rhs).to_integer();
-                Value::Integer(match op.op {
-                    Operation::Add => lhs.wrapping_add(rhs),
-                    Operation::Sub => lhs.wrapping_sub(rhs),
-                    Operation::Mul => lhs.wrapping_mul(rhs),
-                    Operation::Div => lhs.wrapping_div(rhs),
-                    Operation::Mod => lhs.wrapping_rem(rhs),
-                })
+                let lhs = self.eval_expression(&op.lhs);
+                let rhs = self.eval_expression(&op.rhs);
+                match op.op {
+                    Operation::Add => lhs + rhs,
+                    Operation::Sub => todo!(),
+                    Operation::Mul => todo!(),
+                    Operation::Div => todo!(),
+                    Operation::Mod => todo!(),
+                }
             }
             Expression::Identifier(ident) => {
                 if let Some(var) = self.variables.get(ident) {

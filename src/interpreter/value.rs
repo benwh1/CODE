@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::Add};
 
 use crate::{
     interpreter::r#type::Type,
@@ -49,6 +49,33 @@ impl Value {
             Type::Integer => *self = Value::Integer(self.to_integer()),
             Type::String => *self = Value::String(self.to_string()),
             Type::Custom(_) => todo!(),
+        }
+    }
+}
+
+impl Add for Value {
+    type Output = Value;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        match self {
+            Self::Integer(n) => Self::Integer(n.wrapping_add(rhs.to_integer())),
+            Self::String(mut s) => {
+                match rhs {
+                    Self::String(s2) => {
+                        // If both strings are numeric, cast them to integers and add them
+                        if let (Ok(a), Ok(b)) = (s.parse::<i8>(), s2.parse::<i8>()) {
+                            Self::String((a + b).to_string())
+                        } else {
+                            s.push_str(&s2);
+                            Self::String(s)
+                        }
+                    }
+                    Self::Integer(_) | Self::Uninitialized => {
+                        Self::String(format!("{s}{rhs}", rhs = rhs.to_string()))
+                    }
+                }
+            }
+            Self::Uninitialized => Self::Uninitialized,
         }
     }
 }
