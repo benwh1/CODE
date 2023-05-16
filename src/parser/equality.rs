@@ -24,7 +24,7 @@ pub fn equality(input: &str) -> IResult<&str, Equality> {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }
 
-    let (result, rhs) = expression(rhs)?;
+    let (result, rhs) = expression(rhs, true)?;
     if result != "" {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }

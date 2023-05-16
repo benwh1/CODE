@@ -48,12 +48,12 @@ pub fn binary_op(input: &str) -> IResult<&str, BinaryOp> {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     };
 
-    let (rest, lhs) = expression(lhs)?;
+    let (rest, lhs) = expression(lhs, true)?;
     if rest != "" {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     }
 
-    let (rest, rhs) = expression(rhs)?;
+    let (rest, rhs) = expression(rhs, true)?;
     if rest != "" {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     }

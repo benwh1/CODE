@@ -11,7 +11,7 @@ pub fn program(input: &str) -> Program {
             .lines()
             .enumerate()
             .map(|(i, l)| {
-                let (rest, expr) = expression(l).unwrap();
+                let (rest, expr) = expression(l, true).unwrap();
                 if rest != "" {
                     panic!("Syntax error on line {}", i + 1);
                 }

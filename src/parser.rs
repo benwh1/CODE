@@ -4,5 +4,6 @@ pub mod equality;
 pub mod expression;
 pub mod identifier;
 pub mod literal;
+mod parser_chain;
 pub mod print;
 pub mod program;

@@ -1,4 +1,10 @@
-use nom::{bytes::complete::take_while1, IResult};
+use nom::{
+    bytes::complete::take_while1,
+    error::{Error, ErrorKind},
+    Err, IResult,
+};
+
+use crate::parser_chain;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Literal {
@@ -6,13 +12,15 @@ pub enum Literal {
     String(StringLit),
 }
 
-pub fn literal(input: &str) -> IResult<&str, Literal> {
-    if let Ok((input, lit)) = integer(input) {
-        Ok((input, Literal::Integer(lit)))
-    } else {
-        let (input, lit) = string(input)?;
-        Ok((input, Literal::String(lit)))
-    }
+pub fn literal(input: &str, use_all_input: bool) -> IResult<&str, Literal> {
+    parser_chain!(
+        |i| integer(i).map(|(input, lit)| (input, Literal::Integer(lit))),
+        |i| string(i).map(|(input, lit)| (input, Literal::String(lit)));
+        input,
+        use_all_input
+    );
+
+    Err(Err::Failure(Error::new(input, ErrorKind::Fail)))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

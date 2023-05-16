@@ -1,12 +1,18 @@
-use nom::IResult;
+use nom::{
+    error::{Error, ErrorKind},
+    Err, IResult,
+};
 
-use crate::parser::{
-    binary_op::{binary_op, BinaryOp},
-    come_from::{come_from, ComeFrom},
-    equality::{equality, Equality},
-    identifier::{identifier, Identifier},
-    literal::{literal, Literal},
-    print::{print, Print},
+use crate::{
+    parser::{
+        binary_op::{binary_op, BinaryOp},
+        come_from::{come_from, ComeFrom},
+        equality::{equality, Equality},
+        identifier::{identifier, Identifier},
+        literal::{literal, Literal},
+        print::{print, Print},
+    },
+    parser_chain,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,19 +25,17 @@ pub enum Expression {
     Literal(Literal),
 }
 
-pub fn expression(input: &str) -> IResult<&str, Expression> {
-    if let Ok((input, lit)) = equality(input) {
-        Ok((input, Expression::Equality(lit)))
-    } else if let Ok((input, cf)) = come_from(input) {
-        Ok((input, Expression::ComeFrom(cf)))
-    } else if let Ok((input, p)) = print(input) {
-        Ok((input, Expression::Print(p)))
-    } else if let Ok((input, op)) = binary_op(input) {
-        Ok((input, Expression::BinaryOp(op)))
-    } else if let Ok((input, ident)) = identifier(input) {
-        Ok((input, Expression::Identifier(ident)))
-    } else {
-        let (input, eq) = literal(input)?;
-        Ok((input, Expression::Literal(eq)))
-    }
+pub fn expression(input: &str, use_all_input: bool) -> IResult<&str, Expression> {
+    parser_chain!(
+        |i| equality(i).map(|(input, expr)| (input, Expression::Equality(expr))),
+        |i| come_from(i).map(|(input, expr)| (input, Expression::ComeFrom(expr))),
+        |i| print(i).map(|(input, expr)| (input, Expression::Print(expr))),
+        |i| binary_op(i).map(|(input, expr)| (input, Expression::BinaryOp(expr))),
+        |i| identifier(i).map(|(input, expr)| (input, Expression::Identifier(expr))),
+        |i| literal(i, use_all_input).map(|(input, expr)| (input, Expression::Literal(expr)));
+        input,
+        use_all_input
+    );
+
+    Err(Err::Failure(Error::new(input, ErrorKind::Fail)))
 }
