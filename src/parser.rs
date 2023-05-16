@@ -1,3 +1,4 @@
+pub mod binary_op;
 pub mod come_from;
 pub mod equality;
 pub mod expression;

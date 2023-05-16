@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use crate::parser::{
+    binary_op::Operation,
     expression::Expression,
     identifier::Identifier,
     literal::{IntegerLit, Literal, StringLit},
@@ -147,6 +148,17 @@ impl InterpreterState {
                 let value = self.eval_expression(&p.0);
                 println!("{value}");
                 value
+            }
+            Expression::BinaryOp(op) => {
+                let lhs = self.eval_expression(&op.lhs).to_integer();
+                let rhs = self.eval_expression(&op.rhs).to_integer();
+                Value::Integer(match op.op {
+                    Operation::Add => lhs.wrapping_add(rhs),
+                    Operation::Sub => lhs.wrapping_sub(rhs),
+                    Operation::Mul => lhs.wrapping_mul(rhs),
+                    Operation::Div => lhs.wrapping_div(rhs),
+                    Operation::Mod => lhs.wrapping_rem(rhs),
+                })
             }
             Expression::Identifier(ident) => {
                 if let Some(var) = self.variables.get(ident) {
