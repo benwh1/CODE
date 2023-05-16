@@ -9,7 +9,7 @@ use crate::{
 pub enum Value {
     Integer(i8),
     String(String),
-    Uninitialized,
+    Uninitialized(Type),
 }
 
 impl Display for Value {
@@ -28,11 +28,19 @@ impl<'a> From<&'a Literal> for Value {
 }
 
 impl Value {
+    pub fn r#type(&self) -> Type {
+        match self {
+            Value::Integer(_) => Type::Integer,
+            Value::String(_) => Type::String,
+            Value::Uninitialized(t) => t.clone(),
+        }
+    }
+
     pub fn to_integer(&self) -> i8 {
         match self {
             Value::Integer(n) => *n,
             Value::String(s) => s.parse().unwrap_or(127),
-            Value::Uninitialized => 127,
+            Value::Uninitialized(_) => 127,
         }
     }
 
@@ -40,7 +48,7 @@ impl Value {
         match self {
             Value::Integer(n) => n.to_string(),
             Value::String(s) => s.clone(),
-            Value::Uninitialized => String::from("nothing"),
+            Value::Uninitialized(_) => String::from("nothing"),
         }
     }
 
@@ -70,12 +78,12 @@ impl Add for Value {
                             Self::String(s)
                         }
                     }
-                    Self::Integer(_) | Self::Uninitialized => {
+                    Self::Integer(_) | Self::Uninitialized(_) => {
                         Self::String(format!("{s}{rhs}", rhs = rhs.to_string()))
                     }
                 }
             }
-            Self::Uninitialized => Self::Uninitialized,
+            Self::Uninitialized(_) => Self::Uninitialized(rhs.r#type()),
         }
     }
 }

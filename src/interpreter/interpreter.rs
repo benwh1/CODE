@@ -10,7 +10,6 @@ use crate::{
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Variable {
     name: Identifier,
-    r#type: Type,
     value: Value,
 }
 
@@ -58,7 +57,7 @@ impl InterpreterState {
                 // If LHS is a variable name, set the value of the variable
                 // Otherwise, create a variable with RHS as the type
                 if let Some(var) = self.variables.get_mut(&eq.lhs) {
-                    rhs.cast(var.r#type.clone());
+                    rhs.cast(var.value.r#type());
                     var.value = rhs.clone();
 
                     rhs
@@ -68,13 +67,13 @@ impl InterpreterState {
                         Expression::Identifier(ident) => Type::from(ident.0.as_ref()),
                         _ => todo!(),
                     };
+                    let value = Value::Uninitialized(var_type);
                     let var = Variable {
                         name: eq.lhs.clone(),
-                        r#type: var_type,
-                        value: Value::Uninitialized,
+                        value: value.clone(),
                     };
                     self.variables.insert(eq.lhs.clone(), var);
-                    Value::Uninitialized
+                    value
                 }
             }
             Expression::ComeFrom(_) => Value::Integer(0),
@@ -98,7 +97,7 @@ impl InterpreterState {
                 if let Some(var) = self.variables.get(ident) {
                     var.value.clone()
                 } else {
-                    Value::Uninitialized
+                    Value::Uninitialized(Type::Integer)
                 }
             }
             Expression::Literal(lit) => lit.into(),
