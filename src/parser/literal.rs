@@ -1,4 +1,4 @@
-use nom::{bytes::complete::take_while, IResult};
+use nom::{bytes::complete::take_while1, IResult};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Literal {
@@ -22,7 +22,7 @@ pub struct IntegerLit(pub(crate) i64);
 pub struct StringLit(pub(crate) String);
 
 pub fn integer(input: &str) -> IResult<&str, IntegerLit> {
-    let (input, lit) = take_while(|c: char| c.is_ascii_digit())(input)?;
+    let (input, lit) = take_while1(|c: char| c.is_ascii_digit())(input)?;
 
     Ok((input, IntegerLit(lit.parse().unwrap())))
 }
