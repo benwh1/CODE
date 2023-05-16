@@ -5,12 +5,12 @@ use nom::{
 
 use crate::parser::{
     expression::{expression, Expression},
-    variable_name::{variable_name, VariableName},
+    identifier::{identifier, Identifier},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Equality {
-    lhs: VariableName,
+    lhs: Identifier,
     rhs: Box<Expression>,
 }
 
@@ -19,7 +19,7 @@ pub fn equality(input: &str) -> IResult<&str, Equality> {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     };
 
-    let (result, lhs) = variable_name(lhs)?;
+    let (result, lhs) = identifier(lhs)?;
     if result != "" {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }
