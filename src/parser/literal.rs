@@ -16,10 +16,10 @@ pub fn literal(input: &str) -> IResult<&str, Literal> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct IntegerLit(i64);
+pub struct IntegerLit(pub(crate) i64);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct StringLit(String);
+pub struct StringLit(pub(crate) String);
 
 pub fn integer(input: &str) -> IResult<&str, IntegerLit> {
     let (input, lit) = take_while(|c: char| c.is_ascii_digit())(input)?;

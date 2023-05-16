@@ -10,8 +10,8 @@ use crate::parser::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Equality {
-    lhs: Identifier,
-    rhs: Box<Expression>,
+    pub(crate) lhs: Identifier,
+    pub(crate) rhs: Box<Expression>,
 }
 
 pub fn equality(input: &str) -> IResult<&str, Equality> {

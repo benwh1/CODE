@@ -2,7 +2,7 @@ use crate::parser::expression::{expression, Expression};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {
-    expressions: Vec<Expression>,
+    pub(crate) expressions: Vec<Expression>,
 }
 
 pub fn program(input: &str) -> Program {
