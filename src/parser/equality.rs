@@ -4,13 +4,13 @@ use nom::{
 };
 
 use crate::parser::{
+    bracketed_identifier::{bracketed_identifier, BracketedIdentifier},
     expression::{expression, Expression},
-    identifier::{identifier, Identifier},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Equality {
-    pub(crate) lhs: Identifier,
+    pub(crate) lhs: BracketedIdentifier,
     pub(crate) rhs: Box<Expression>,
 }
 
@@ -19,7 +19,7 @@ pub fn equality(input: &str) -> IResult<&str, Equality> {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     };
 
-    let (result, lhs) = identifier(lhs)?;
+    let (result, lhs) = bracketed_identifier(lhs)?;
     if result != "" {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }

@@ -1,4 +1,5 @@
 pub mod binary_op;
+pub mod bracketed_identifier;
 pub mod come_from;
 pub mod equality;
 pub mod expression;
