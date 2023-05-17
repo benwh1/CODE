@@ -21,8 +21,8 @@ pub enum Expression {
     ComeFrom(ComeFrom),
     Print(Print),
     BinaryOp(BinaryOp),
-    Identifier(Identifier),
     Literal(Literal),
+    Identifier(Identifier),
 }
 
 pub fn expression(input: &str, use_all_input: bool) -> IResult<&str, Expression> {
@@ -31,8 +31,8 @@ pub fn expression(input: &str, use_all_input: bool) -> IResult<&str, Expression>
         |i| come_from(i).map(|(input, expr)| (input, Expression::ComeFrom(expr))),
         |i| print(i).map(|(input, expr)| (input, Expression::Print(expr))),
         |i| binary_op(i).map(|(input, expr)| (input, Expression::BinaryOp(expr))),
-        |i| identifier(i).map(|(input, expr)| (input, Expression::Identifier(expr))),
-        |i| literal(i, use_all_input).map(|(input, expr)| (input, Expression::Literal(expr)));
+        |i| literal(i, use_all_input).map(|(input, expr)| (input, Expression::Literal(expr))),
+        |i| identifier(i).map(|(input, expr)| (input, Expression::Identifier(expr)));
         input,
         use_all_input
     );

@@ -1,5 +1,5 @@
 use nom::{
-    bytes::complete::take_while1,
+    bytes::{complete::take_while1, streaming::tag},
     error::{Error, ErrorKind},
     Err, IResult,
 };
@@ -36,5 +36,7 @@ pub fn integer(input: &str) -> IResult<&str, IntegerLit> {
 }
 
 pub fn string(input: &str) -> IResult<&str, StringLit> {
+    let (input, _) = tag("the string ")(input)?;
+
     Ok(("", StringLit(input.to_owned())))
 }
