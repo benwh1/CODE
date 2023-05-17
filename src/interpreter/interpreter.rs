@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    interpreter::{r#type::Type, value::Value},
+    interpreter::{int::Int, r#type::Type, value::Value},
     parser::{
         binary_op::Operation, expression::Expression, identifier::Identifier, program::Program,
     },
@@ -68,8 +68,8 @@ impl InterpreterState {
                         ident = Identifier(var.value.to_string());
                     } else {
                         // The LHS of the equality is invalid. Set the inner identifier to 127.
-                        self.set_variable_or_create(ident, Value::Integer(127));
-                        return Value::Integer(127);
+                        self.set_variable_or_create(ident, Value::Integer(Int(127)));
+                        return Value::Integer(Int(127));
                     }
                 }
 
@@ -91,7 +91,7 @@ impl InterpreterState {
                     value
                 }
             }
-            Expression::ComeFrom(_) => Value::Integer(0),
+            Expression::ComeFrom(_) => Value::Integer(Int(0)),
             Expression::Print(p) => {
                 let value = self.eval_expression(&p.0);
                 println!("{value}");

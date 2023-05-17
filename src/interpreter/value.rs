@@ -4,13 +4,13 @@ use std::{
 };
 
 use crate::{
-    interpreter::r#type::Type,
+    interpreter::{int::Int, r#type::Type},
     parser::literal::{IntegerLit, Literal, StringLit},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Value {
-    Integer(i8),
+    Integer(Int),
     String(String),
     Uninitialized(Type),
 }
@@ -24,7 +24,7 @@ impl Display for Value {
 impl<'a> From<&'a Literal> for Value {
     fn from(value: &'a Literal) -> Self {
         match value {
-            Literal::Integer(IntegerLit(n)) => Self::Integer(*n as i8),
+            Literal::Integer(IntegerLit(n)) => Self::Integer(Int(*n as u8)),
             Literal::String(StringLit(s)) => Self::String(s.to_owned()),
         }
     }
@@ -39,17 +39,17 @@ impl Value {
         }
     }
 
-    pub fn to_integer(&self) -> i8 {
+    pub fn to_int(&self) -> Int {
         match self {
             Value::Integer(n) => *n,
-            Value::String(s) => s.parse().unwrap_or(127),
-            Value::Uninitialized(_) => 127,
+            Value::String(s) => Int(s.parse().unwrap_or(127)),
+            Value::Uninitialized(_) => Int(127),
         }
     }
 
     pub fn to_string(&self) -> String {
         match self {
-            Value::Integer(n) => n.to_string(),
+            Value::Integer(n) => n.0.to_string(),
             Value::String(s) => s.clone(),
             Value::Uninitialized(_) => String::from("nothing"),
         }
@@ -57,7 +57,7 @@ impl Value {
 
     pub fn cast(&mut self, to: Type) {
         match to {
-            Type::Integer => *self = Value::Integer(self.to_integer()),
+            Type::Integer => *self = Value::Integer(self.to_int()),
             Type::String => *self = Value::String(self.to_string()),
             Type::Custom(_) => todo!(),
         }
@@ -69,7 +69,7 @@ impl Add for Value {
 
     fn add(self, rhs: Self) -> Self::Output {
         match self {
-            Self::Integer(n) => Self::Integer(n.wrapping_add(rhs.to_integer())),
+            Self::Integer(n) => Self::Integer(n + rhs.to_int()),
             Self::String(mut s) => {
                 match rhs {
                     Self::String(s2) => {
@@ -96,11 +96,11 @@ impl Sub for Value {
 
     fn sub(self, rhs: Self) -> Self::Output {
         match self {
-            Self::Integer(n) => Self::Integer(n.wrapping_sub(rhs.to_integer())),
+            Self::Integer(n) => Self::Integer(n - rhs.to_int()),
             Self::String(mut s) => match rhs {
                 Self::Integer(n) => {
                     // If n is nonnegative, remove the last n characters from s
-                    for _ in 0..n {
+                    for _ in 0..n.0 {
                         s.pop();
                     }
                     Self::String(s)
