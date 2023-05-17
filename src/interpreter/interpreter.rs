@@ -13,6 +13,12 @@ pub struct Variable {
     value: Value,
 }
 
+impl Variable {
+    pub fn set_value(&mut self, value: Value) {
+        self.value = value;
+    }
+}
+
 pub struct InterpreterState {
     variables: HashMap<Identifier, Variable>,
 }
@@ -58,7 +64,7 @@ impl InterpreterState {
                 // Otherwise, create a variable with RHS as the type
                 if let Some(var) = self.variables.get_mut(&eq.lhs) {
                     rhs.cast(var.value.r#type());
-                    var.value = rhs.clone();
+                    var.set_value(rhs.clone());
 
                     rhs
                 } else {
@@ -68,11 +74,7 @@ impl InterpreterState {
                         _ => todo!(),
                     };
                     let value = Value::Uninitialized(var_type);
-                    let var = Variable {
-                        name: eq.lhs.clone(),
-                        value: value.clone(),
-                    };
-                    self.variables.insert(eq.lhs.clone(), var);
+                    self.create_variable(eq.lhs.clone(), value.clone());
                     value
                 }
             }
@@ -101,6 +103,19 @@ impl InterpreterState {
                 }
             }
             Expression::Literal(lit) => lit.into(),
+        }
+    }
+
+    pub fn create_variable(&mut self, name: Identifier, value: Value) {
+        self.variables
+            .insert(name.clone(), Variable { name, value });
+    }
+
+    pub fn set_variable_or_create(&mut self, name: Identifier, value: Value) {
+        if let Some(var) = self.variables.get_mut(&name) {
+            var.set_value(value);
+        } else {
+            self.create_variable(name, value);
         }
     }
 }
