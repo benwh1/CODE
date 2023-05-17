@@ -36,14 +36,15 @@ pub struct BinaryOp {
 }
 
 pub fn binary_op(input: &str) -> IResult<&str, BinaryOp> {
-    // Find the operation that appears earliest in the string
+    // Find the operation that appears latest in the string. This will make it so that all
+    // binary operations will be interpreted from left to right.
     let Some((op, lhs, rhs)) = Operation::iter()
         .filter_map(|op| {
             input
-                .split_once(&format!(" {} ", op.symbol()))
+                .rsplit_once(&format!(" {} ", op.symbol()))
                 .map(|(lhs, rhs)| (op, lhs, rhs))
         })
-        .min_by_key(|(_, lhs, _)| lhs.len())
+        .max_by_key(|(_, lhs, _)| lhs.len())
     else {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     };
