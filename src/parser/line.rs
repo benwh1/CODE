@@ -6,6 +6,7 @@ pub mod come_from;
 pub mod equality;
 pub mod expression;
 pub mod identifier;
+pub mod indented_expression;
 pub mod literal;
 mod parser_chain;
 pub mod print;
