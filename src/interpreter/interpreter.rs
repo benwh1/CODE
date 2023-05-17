@@ -102,7 +102,7 @@ impl InterpreterState {
                 let rhs = self.eval_expression(&op.rhs);
                 match op.op {
                     Operation::Add => lhs + rhs,
-                    Operation::Sub => todo!(),
+                    Operation::Sub => lhs - rhs,
                     Operation::Mul => todo!(),
                     Operation::Div => todo!(),
                     Operation::Mod => todo!(),

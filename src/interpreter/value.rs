@@ -1,4 +1,7 @@
-use std::{fmt::Display, ops::Add};
+use std::{
+    fmt::Display,
+    ops::{Add, Sub},
+};
 
 use crate::{
     interpreter::r#type::Type,
@@ -62,7 +65,7 @@ impl Value {
 }
 
 impl Add for Value {
-    type Output = Value;
+    type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
         match self {
@@ -84,6 +87,32 @@ impl Add for Value {
                 }
             }
             Self::Uninitialized(_) => Self::Uninitialized(rhs.r#type()),
+        }
+    }
+}
+
+impl Sub for Value {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        match self {
+            Self::Integer(n) => Self::Integer(n.wrapping_sub(rhs.to_integer())),
+            Self::String(mut s) => match rhs {
+                Self::Integer(n) => {
+                    // If n is nonnegative, remove the last n characters from s
+                    for _ in 0..n {
+                        s.pop();
+                    }
+                    Self::String(s)
+                }
+                Self::String(_) | Self::Uninitialized(_) => {
+                    let s2 = rhs.to_string();
+
+                    // Remove all instances of `s2` from `s` and collect into a new string
+                    Self::String(s.split(&s2).collect())
+                }
+            },
+            Self::Uninitialized(_) => Self::Uninitialized(self.r#type()),
         }
     }
 }
