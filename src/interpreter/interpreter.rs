@@ -104,7 +104,7 @@ impl InterpreterState {
                     Operation::Add => lhs + rhs,
                     Operation::Sub => lhs - rhs,
                     Operation::Mul => todo!(),
-                    Operation::Div => todo!(),
+                    Operation::Div => lhs / rhs,
                     Operation::Mod => todo!(),
                 }
             }

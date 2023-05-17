@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    ops::{Add, Div, Mul, Sub},
+    str::FromStr,
+};
 
 const MODULUS: u8 = 127;
 static INVERSES: [u8; 127] = [
@@ -46,5 +49,17 @@ impl Div for Int {
         } else {
             self * Int(INVERSES[rhs.0 as usize])
         }
+    }
+}
+
+impl FromStr for Int {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<u8>()
+            .ok()
+            .filter(|&n| n < 127)
+            .map(|n| Int(n))
+            .ok_or(())
     }
 }
