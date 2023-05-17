@@ -4,7 +4,7 @@ use nom::{
 };
 
 use crate::{
-    parser::{
+    parser::line::{
         binary_op::{binary_op, BinaryOp},
         come_from::{come_from, ComeFrom},
         equality::{equality, Equality},

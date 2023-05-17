@@ -3,7 +3,7 @@ use nom::{
     IResult,
 };
 
-use crate::parser::{
+use crate::parser::line::{
     bracketed_identifier::{bracketed_identifier, BracketedIdentifier},
     expression::{expression, Expression},
 };

@@ -4,7 +4,7 @@ use nom::{
     IResult,
 };
 
-use crate::parser::identifier::{identifier, Identifier};
+use crate::parser::line::identifier::{identifier, Identifier};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BracketedIdentifier {

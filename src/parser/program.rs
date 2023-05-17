@@ -1,4 +1,4 @@
-use crate::parser::expression::{expression, Expression};
+use crate::parser::line::expression::{expression, Expression};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Program {

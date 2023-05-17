@@ -5,7 +5,7 @@ use nom::{
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use crate::parser::expression::{expression, Expression};
+use crate::parser::line::expression::{expression, Expression};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum Operation {

@@ -1,6 +1,6 @@
 use nom::{bytes::streaming::tag, IResult};
 
-use crate::parser::literal::{integer, IntegerLit};
+use crate::parser::line::literal::{integer, IntegerLit};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ComeFrom {

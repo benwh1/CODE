@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use crate::{
     interpreter::{int::Int, r#type::Type, value::Value},
     parser::{
-        binary_op::Operation, expression::Expression, identifier::Identifier, program::Program,
+        line::{binary_op::Operation, expression::Expression, identifier::Identifier},
+        program::Program,
     },
 };
 

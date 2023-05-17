@@ -5,7 +5,7 @@ use std::{
 
 use crate::{
     interpreter::{int::Int, r#type::Type},
-    parser::literal::{IntegerLit, Literal, StringLit},
+    parser::line::literal::{IntegerLit, Literal, StringLit},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
