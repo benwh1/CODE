@@ -98,9 +98,9 @@ impl Sub for Value {
         match self {
             Self::Integer(n) => Self::Integer(n - rhs.to_int()),
             Self::String(mut s) => match rhs {
-                Self::Integer(n) => {
+                Self::Integer(Int(n)) => {
                     // If n is nonnegative, remove the last n characters from s
-                    for _ in 0..n.0 {
+                    for _ in 0..n {
                         s.pop();
                     }
                     Self::String(s)
