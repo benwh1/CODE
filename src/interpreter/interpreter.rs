@@ -60,9 +60,22 @@ impl InterpreterState {
             Expression::Equality(eq) => {
                 let mut rhs = self.eval_expression(&eq.rhs);
 
-                // If LHS is a variable name, set the value of the variable
+                // (x) = y means set the variable whose name is the value of x, to y.
+                // So if LHS is in brackets, `eval` it that many times.
+                let mut ident = eq.lhs.identifier.clone();
+                for _ in 0..eq.lhs.num_brackets {
+                    if let Some(var) = self.variables.get(&ident) {
+                        ident = Identifier(var.value.to_string());
+                    } else {
+                        // The LHS of the equality is invalid. Set the inner identifier to 127.
+                        self.set_variable_or_create(ident, Value::Integer(127));
+                        return Value::Integer(127);
+                    }
+                }
+
+                // If the identifier is a variable name, set the value of the variable
                 // Otherwise, create a variable with RHS as the type
-                if let Some(var) = self.variables.get_mut(&eq.lhs) {
+                if let Some(var) = self.variables.get_mut(&ident) {
                     rhs.cast(var.value.r#type());
                     var.set_value(rhs.clone());
 
@@ -74,7 +87,7 @@ impl InterpreterState {
                         _ => todo!(),
                     };
                     let value = Value::Uninitialized(var_type);
-                    self.create_variable(eq.lhs.clone(), value.clone());
+                    self.create_variable(ident, value.clone());
                     value
                 }
             }
