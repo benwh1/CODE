@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, Div, Mul, Rem, Sub},
 };
 
 use crate::{
@@ -164,5 +164,15 @@ impl Div for Value {
             }
             Self::Uninitialized(_) => self,
         }
+    }
+}
+
+impl Rem for Value {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        let mut v = Self::Integer(self.to_int() % rhs.to_int());
+        v.cast(self.r#type());
+        v
     }
 }

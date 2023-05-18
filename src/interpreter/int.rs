@@ -1,5 +1,5 @@
 use std::{
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, Div, Mul, Rem, Sub},
     str::FromStr,
 };
 
@@ -48,6 +48,18 @@ impl Div for Int {
             Self(127)
         } else {
             Self(self.0 / rhs.0)
+        }
+    }
+}
+
+impl Rem for Int {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        if rhs.0 == 0 {
+            Self(127)
+        } else {
+            Self(self.0 % rhs.0)
         }
     }
 }

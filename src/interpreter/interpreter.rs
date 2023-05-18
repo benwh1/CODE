@@ -131,7 +131,7 @@ impl InterpreterState {
                     Operation::Mul => lhs * rhs,
                     Operation::Div => lhs / rhs,
                     Operation::ModularDiv => lhs.modular_div(rhs),
-                    Operation::Mod => todo!(),
+                    Operation::Mod => lhs % rhs,
                 }
             }
             Expression::Identifier(ident) => {
