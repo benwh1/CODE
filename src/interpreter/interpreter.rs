@@ -1,9 +1,12 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, matches};
 
 use crate::{
     interpreter::{int::Int, r#type::Type, value::Value},
     parser::{
-        line::{binary_op::Operation, expression::Expression, identifier::Identifier},
+        line::{
+            binary_op::Operation, bracketed_identifier::BracketedIdentifier,
+            expression::Expression, identifier::Identifier,
+        },
         program::Program,
     },
 };
@@ -37,7 +40,7 @@ impl InterpreterState {
             .expressions
             .iter()
             .enumerate()
-            .filter_map(|(idx, e)| match e {
+            .filter_map(|(idx, e)| match &e.expr {
                 Expression::ComeFrom(c) => Some((c.line_number.0 as usize - 1, idx)),
                 _ => None,
             })
@@ -46,11 +49,26 @@ impl InterpreterState {
         let mut current_line = 0;
         while current_line < program.expressions.len() {
             let expr = &program.expressions[current_line];
-            self.eval_expression(expr);
+            let value = self.eval_expression(&expr.expr);
 
             if let Some(&to) = come_froms.get(&current_line) {
                 current_line = to;
+            } else if matches!(expr.expr, Expression::Conditional(_))
+                && value == Value::Integer(Int(0))
+            {
+                // If we just evaluated a conditional to false, skip over the indented block
+                loop {
+                    current_line += 1;
+                    if let Some(e) = program.expressions.get(current_line) {
+                        if e.indent_depth <= expr.indent_depth {
+                            break;
+                        }
+                    } else {
+                        return;
+                    }
+                }
             } else {
+                // Otherwise, just go to the next line
                 current_line += 1;
             }
         }
@@ -58,6 +76,20 @@ impl InterpreterState {
 
     fn eval_expression(&mut self, expr: &Expression) -> Value {
         match expr {
+            Expression::Conditional(eq) => {
+                let rhs = self.eval_expression(&eq.rhs);
+
+                // Value of the LHS variable, or an uninitialized int if it's not defined
+                let mut lhs = self
+                    .resolve_bracketed_identifier(&eq.lhs)
+                    .and_then(|ident| self.variables.get(&ident))
+                    .map(|v| &v.value)
+                    .unwrap_or_else(|| &Value::Uninitialized(Type::Integer))
+                    .to_owned();
+                lhs.cast(rhs.r#type());
+
+                Value::Integer(Int((lhs == rhs) as u8))
+            }
             Expression::Equality(eq) => {
                 let mut rhs = self.eval_expression(&eq.rhs);
 
