@@ -29,17 +29,24 @@ Calculate the primes:
 n = int
 d = int
 a = int
+str = string
+str = the string 
 n = 2
-come from 16
+come from 21
 d = 2
-come from 13
+come from 15
 n = d
- print n
+ str = str + n + the string , 
 a = n ÷÷ d
 a = 0
  
 d = d + 1
-come from 9
-come from 12
+come from 11
+come from 14
 n = n + 1
+n = 126
+ 
+
+come from 20
+print str - 2
 ```
