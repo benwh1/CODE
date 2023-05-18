@@ -142,6 +142,7 @@ impl InterpreterState {
                 }
             }
             Expression::Literal(lit) => lit.into(),
+            Expression::None => Value::Uninitialized(Type::Integer),
         }
     }
 

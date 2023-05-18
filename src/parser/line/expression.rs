@@ -26,9 +26,14 @@ pub enum Expression {
     BinaryOp(BinaryOp),
     Literal(Literal),
     Identifier(Identifier),
+    None,
 }
 
 pub fn expression(input: &str, use_all_input: bool) -> IResult<&str, Expression> {
+    if input == "" && use_all_input {
+        return Ok(("", Expression::None));
+    }
+
     parser_chain!(
         |i| equality(i).map(|(input, expr)| (input, Expression::Equality(expr))),
         |i| come_from(i).map(|(input, expr)| (input, Expression::ComeFrom(expr))),
