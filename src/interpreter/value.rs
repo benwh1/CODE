@@ -17,7 +17,11 @@ pub enum Value {
 
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.to_string())
+        match self {
+            Value::Integer(n) => f.write_str(&n.0.to_string()),
+            Value::String(s) => f.write_str(s),
+            Value::Uninitialized(_) => f.write_str("nothing"),
+        }
     }
 }
 
@@ -44,14 +48,6 @@ impl Value {
             Value::Integer(n) => *n,
             Value::String(s) => s.parse().unwrap_or(Int(127)),
             Value::Uninitialized(_) => Int(127),
-        }
-    }
-
-    pub fn to_string(&self) -> String {
-        match self {
-            Value::Integer(n) => n.0.to_string(),
-            Value::String(s) => s.clone(),
-            Value::Uninitialized(_) => String::from("nothing"),
         }
     }
 
@@ -163,7 +159,7 @@ impl Div for Value {
                     Self::String((Self::Integer(n) / rhs).to_string())
                 } else {
                     let new_len = s.chars().count() / rhs.to_int().0 as usize;
-                    Value::String(s.chars().take(new_len).collect())
+                    Self::String(s.chars().take(new_len).collect())
                 }
             }
             Self::Uninitialized(_) => self,

@@ -7,7 +7,7 @@ pub enum Type {
 
 impl From<&str> for Type {
     fn from(value: &str) -> Self {
-        match value.as_ref() {
+        match value {
             "int" => Self::Integer,
             "string" => Self::String,
             _ => Self::Custom(value.to_owned()),

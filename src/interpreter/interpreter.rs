@@ -23,15 +23,14 @@ impl Variable {
     }
 }
 
+#[derive(Default)]
 pub struct InterpreterState {
     variables: HashMap<Identifier, Variable>,
 }
 
 impl InterpreterState {
     pub fn new() -> Self {
-        Self {
-            variables: HashMap::new(),
-        }
+        Self::default()
     }
 
     pub fn run(&mut self, program: &Program) {

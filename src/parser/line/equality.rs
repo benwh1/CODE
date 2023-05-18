@@ -20,12 +20,12 @@ pub fn equality(input: &str) -> IResult<&str, Equality> {
     };
 
     let (result, lhs) = bracketed_identifier(lhs)?;
-    if result != "" {
+    if !result.is_empty() {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }
 
     let (result, rhs) = expression(rhs, true)?;
-    if result != "" {
+    if !result.is_empty() {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }
 

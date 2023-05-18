@@ -66,10 +66,6 @@ impl FromStr for Int {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        s.parse::<u8>()
-            .ok()
-            .filter(|&n| n < 127)
-            .map(|n| Int(n))
-            .ok_or(())
+        s.parse::<u8>().ok().filter(|&n| n < 127).map(Int).ok_or(())
     }
 }

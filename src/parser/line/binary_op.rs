@@ -52,12 +52,12 @@ pub fn binary_op(input: &str) -> IResult<&str, BinaryOp> {
     };
 
     let (rest, lhs) = expression(lhs, true)?;
-    if rest != "" {
+    if !rest.is_empty() {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     }
 
     let (rest, rhs) = expression(rhs, true)?;
-    if rest != "" {
+    if !rest.is_empty() {
         return Err(nom::Err::Failure(Error::new(input, ErrorKind::Fail)));
     }
 
