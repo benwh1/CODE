@@ -42,7 +42,7 @@ impl Value {
     pub fn to_int(&self) -> Int {
         match self {
             Value::Integer(n) => *n,
-            Value::String(s) => Int(s.parse().unwrap_or(127)),
+            Value::String(s) => s.parse().unwrap_or(Int(127)),
             Value::Uninitialized(_) => Int(127),
         }
     }
@@ -68,7 +68,7 @@ impl Value {
             Self::Integer(n) => Self::Integer(n.modular_div(rhs.to_int())),
             Self::String(ref s) => {
                 // If s is an integer string, convert it to an int
-                if let Ok(n) = s.parse::<Int>() {
+                if let Ok(n) = s.parse() {
                     Self::String((Self::Integer(n).modular_div(rhs)).to_string())
                 } else {
                     self / rhs
@@ -89,8 +89,8 @@ impl Add for Value {
                 match rhs {
                     Self::String(s2) => {
                         // If both strings are numeric, cast them to integers and add them
-                        if let (Ok(a), Ok(b)) = (s.parse::<i8>(), s2.parse::<i8>()) {
-                            Self::String((a + b).to_string())
+                        if let (Ok(a), Ok(b)) = (s.parse::<Int>(), s2.parse()) {
+                            Self::String((a + b).0.to_string())
                         } else {
                             s.push_str(&s2);
                             Self::String(s)
@@ -140,7 +140,7 @@ impl Mul for Value {
             Self::Integer(n) => Self::Integer(n * rhs.to_int()),
             Self::String(s) => {
                 // If s is an integer string, convert it to an int
-                if let Ok(n) = s.parse::<Int>() {
+                if let Ok(n) = s.parse() {
                     Self::String((Self::Integer(n) * rhs).to_string())
                 } else {
                     Self::String(s.repeat(rhs.to_int().0 as usize))
@@ -159,7 +159,7 @@ impl Div for Value {
             Self::Integer(n) => Self::Integer(n / rhs.to_int()),
             Self::String(s) => {
                 // If s is an integer string, convert it to an int
-                if let Ok(n) = s.parse::<Int>() {
+                if let Ok(n) = s.parse() {
                     Self::String((Self::Integer(n) / rhs).to_string())
                 } else {
                     let new_len = s.chars().count() / rhs.to_int().0 as usize;
