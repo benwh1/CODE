@@ -1,6 +1,6 @@
 use std::{
     fmt::Display,
-    ops::{Add, Div, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 use crate::{
@@ -128,6 +128,25 @@ impl Sub for Value {
                 }
             },
             Self::Uninitialized(_) => Self::Uninitialized(self.r#type()),
+        }
+    }
+}
+
+impl Mul for Value {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        match self {
+            Self::Integer(n) => Self::Integer(n * rhs.to_int()),
+            Self::String(s) => {
+                // If s is an integer string, convert it to an int
+                if let Ok(n) = s.parse::<Int>() {
+                    Self::String((Self::Integer(n) * rhs).to_string())
+                } else {
+                    Self::String(s.repeat(rhs.to_int().0 as usize))
+                }
+            }
+            Self::Uninitialized(_) => self,
         }
     }
 }

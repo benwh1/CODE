@@ -129,7 +129,7 @@ impl InterpreterState {
                 match op.op {
                     Operation::Add => lhs + rhs,
                     Operation::Sub => lhs - rhs,
-                    Operation::Mul => todo!(),
+                    Operation::Mul => lhs * rhs,
                     Operation::Div => lhs / rhs,
                     Operation::ModularDiv => lhs.modular_div(rhs),
                     Operation::Mod => todo!(),
