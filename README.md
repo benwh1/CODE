@@ -22,3 +22,24 @@ x = y
 y = z
 print z
 ```
+
+Calculate the primes:
+
+```
+n = int
+d = int
+a = int
+n = 2
+come from 16
+d = 2
+come from 13
+n = d
+ print n
+a = n ÷÷ d
+a = 0
+ 
+d = d + 1
+come from 9
+come from 12
+n = n + 1
+```
