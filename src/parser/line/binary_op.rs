@@ -13,6 +13,7 @@ pub enum Operation {
     Sub,
     Mul,
     Div,
+    ModularDiv,
     Mod,
 }
 
@@ -23,6 +24,7 @@ impl Operation {
             Self::Sub => "-",
             Self::Mul => "*",
             Self::Div => "÷",
+            Self::ModularDiv => "/",
             Self::Mod => "÷÷",
         }
     }

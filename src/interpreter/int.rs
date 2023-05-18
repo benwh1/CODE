@@ -47,6 +47,16 @@ impl Div for Int {
         if rhs.0 == 0 {
             Self(127)
         } else {
+            Self(self.0 / rhs.0)
+        }
+    }
+}
+
+impl Int {
+    pub fn modular_div(self, rhs: Self) -> Self {
+        if rhs.0 == 0 {
+            Self(127)
+        } else {
             self * Int(INVERSES[rhs.0 as usize])
         }
     }

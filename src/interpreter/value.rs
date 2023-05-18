@@ -62,6 +62,21 @@ impl Value {
             Type::Custom(_) => todo!(),
         }
     }
+
+    pub fn modular_div(self, rhs: Self) -> Self {
+        match self {
+            Self::Integer(n) => Self::Integer(n.modular_div(rhs.to_int())),
+            Self::String(ref s) => {
+                // If s is an integer string, convert it to an int
+                if let Ok(n) = s.parse::<Int>() {
+                    Self::String((Self::Integer(n).modular_div(rhs)).to_string())
+                } else {
+                    self / rhs
+                }
+            }
+            Self::Uninitialized(_) => self,
+        }
+    }
 }
 
 impl Add for Value {

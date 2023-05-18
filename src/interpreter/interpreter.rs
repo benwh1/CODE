@@ -106,6 +106,7 @@ impl InterpreterState {
                     Operation::Sub => lhs - rhs,
                     Operation::Mul => todo!(),
                     Operation::Div => lhs / rhs,
+                    Operation::ModularDiv => lhs.modular_div(rhs),
                     Operation::Mod => todo!(),
                 }
             }
