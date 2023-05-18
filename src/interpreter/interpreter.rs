@@ -61,18 +61,11 @@ impl InterpreterState {
             Expression::Equality(eq) => {
                 let mut rhs = self.eval_expression(&eq.rhs);
 
-                // (x) = y means set the variable whose name is the value of x, to y.
-                // So if LHS is in brackets, `eval` it that many times.
-                let mut ident = eq.lhs.identifier.clone();
-                for _ in 0..eq.lhs.num_brackets {
-                    if let Some(var) = self.variables.get(&ident) {
-                        ident = Identifier(var.value.to_string());
-                    } else {
-                        // The LHS of the equality is invalid. Set the inner identifier to 127.
-                        self.set_variable_or_create(ident, Value::Integer(Int(127)));
-                        return Value::Integer(Int(127));
-                    }
-                }
+                let Some(ident) = self.resolve_bracketed_identifier(&eq.lhs) else {
+                    // The LHS of the equality is invalid. Set the inner identifier to 127.
+                    self.set_variable_or_create(eq.lhs.identifier.clone(), Value::Integer(Int(127)));
+                    return Value::Integer(Int(127));
+                };
 
                 // If the identifier is a variable name, set the value of the variable
                 // Otherwise, create a variable with RHS as the type
@@ -132,5 +125,23 @@ impl InterpreterState {
         } else {
             self.create_variable(name, value);
         }
+    }
+
+    pub fn resolve_bracketed_identifier(
+        &self,
+        bracketed: &BracketedIdentifier,
+    ) -> Option<Identifier> {
+        // (x) = y means set the variable whose name is the value of x, to y.
+        // So if LHS is in brackets, `eval` it that many times.
+        let mut ident = bracketed.identifier.clone();
+        for _ in 0..bracketed.num_brackets {
+            if let Some(var) = self.variables.get(&ident) {
+                ident = Identifier(var.value.to_string());
+            } else {
+                return None;
+            }
+        }
+
+        Some(ident)
     }
 }
