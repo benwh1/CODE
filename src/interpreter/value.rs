@@ -10,7 +10,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Value {
-    Integer(Int),
+    Int(Int),
     String(String),
     Uninitialized(Type),
 }
@@ -18,7 +18,7 @@ pub enum Value {
 impl Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Value::Integer(n) => f.write_str(&n.0.to_string()),
+            Value::Int(n) => f.write_str(&n.0.to_string()),
             Value::String(s) => f.write_str(s),
             Value::Uninitialized(_) => f.write_str("nothing"),
         }
@@ -28,7 +28,7 @@ impl Display for Value {
 impl<'a> From<&'a Literal> for Value {
     fn from(value: &'a Literal) -> Self {
         match value {
-            Literal::Integer(IntegerLit(n)) => Self::Integer(Int(*n as u8)),
+            Literal::Integer(IntegerLit(n)) => Self::Int(Int(*n as u8)),
             Literal::String(StringLit(s)) => Self::String(s.to_owned()),
         }
     }
@@ -37,7 +37,7 @@ impl<'a> From<&'a Literal> for Value {
 impl Value {
     pub fn r#type(&self) -> Type {
         match self {
-            Value::Integer(_) => Type::Integer,
+            Value::Int(_) => Type::Int,
             Value::String(_) => Type::String,
             Value::Uninitialized(t) => t.clone(),
         }
@@ -45,7 +45,7 @@ impl Value {
 
     pub fn to_int(&self) -> Int {
         match self {
-            Value::Integer(n) => *n,
+            Value::Int(n) => *n,
             Value::String(s) => s.parse().unwrap_or(Int(127)),
             Value::Uninitialized(_) => Int(127),
         }
@@ -53,7 +53,7 @@ impl Value {
 
     pub fn cast(&mut self, to: Type) {
         match to {
-            Type::Integer => *self = Value::Integer(self.to_int()),
+            Type::Int => *self = Value::Int(self.to_int()),
             Type::String => *self = Value::String(self.to_string()),
             Type::Custom(_) => todo!(),
         }
@@ -61,11 +61,11 @@ impl Value {
 
     pub fn modular_div(self, rhs: Self) -> Self {
         match self {
-            Self::Integer(n) => Self::Integer(n.modular_div(rhs.to_int())),
+            Self::Int(n) => Self::Int(n.modular_div(rhs.to_int())),
             Self::String(ref s) => {
                 // If s is an integer string, convert it to an int
                 if let Ok(n) = s.parse() {
-                    Self::String((Self::Integer(n).modular_div(rhs)).to_string())
+                    Self::String((Self::Int(n).modular_div(rhs)).to_string())
                 } else {
                     self / rhs
                 }
@@ -80,7 +80,7 @@ impl Add for Value {
 
     fn add(self, rhs: Self) -> Self::Output {
         match self {
-            Self::Integer(n) => Self::Integer(n + rhs.to_int()),
+            Self::Int(n) => Self::Int(n + rhs.to_int()),
             Self::String(mut s) => {
                 match rhs {
                     Self::String(s2) => {
@@ -92,7 +92,7 @@ impl Add for Value {
                             Self::String(s)
                         }
                     }
-                    Self::Integer(_) | Self::Uninitialized(_) => {
+                    Self::Int(_) | Self::Uninitialized(_) => {
                         Self::String(format!("{s}{rhs}", rhs = rhs.to_string()))
                     }
                 }
@@ -107,9 +107,9 @@ impl Sub for Value {
 
     fn sub(self, rhs: Self) -> Self::Output {
         match self {
-            Self::Integer(n) => Self::Integer(n - rhs.to_int()),
+            Self::Int(n) => Self::Int(n - rhs.to_int()),
             Self::String(mut s) => match rhs {
-                Self::Integer(Int(n)) => {
+                Self::Int(Int(n)) => {
                     // If n is nonnegative, remove the last n characters from s
                     for _ in 0..n {
                         s.pop();
@@ -133,11 +133,11 @@ impl Mul for Value {
 
     fn mul(self, rhs: Self) -> Self::Output {
         match self {
-            Self::Integer(n) => Self::Integer(n * rhs.to_int()),
+            Self::Int(n) => Self::Int(n * rhs.to_int()),
             Self::String(s) => {
                 // If s is an integer string, convert it to an int
                 if let Ok(n) = s.parse() {
-                    Self::String((Self::Integer(n) * rhs).to_string())
+                    Self::String((Self::Int(n) * rhs).to_string())
                 } else {
                     Self::String(s.repeat(rhs.to_int().0 as usize))
                 }
@@ -152,11 +152,11 @@ impl Div for Value {
 
     fn div(self, rhs: Self) -> Self::Output {
         match self {
-            Self::Integer(n) => Self::Integer(n / rhs.to_int()),
+            Self::Int(n) => Self::Int(n / rhs.to_int()),
             Self::String(s) => {
                 // If s is an integer string, convert it to an int
                 if let Ok(n) = s.parse() {
-                    Self::String((Self::Integer(n) / rhs).to_string())
+                    Self::String((Self::Int(n) / rhs).to_string())
                 } else {
                     let new_len = s.chars().count() / rhs.to_int().0 as usize;
                     Self::String(s.chars().take(new_len).collect())
@@ -171,7 +171,7 @@ impl Rem for Value {
     type Output = Self;
 
     fn rem(self, rhs: Self) -> Self::Output {
-        let mut v = Self::Integer(self.to_int() % rhs.to_int());
+        let mut v = Self::Int(self.to_int() % rhs.to_int());
         v.cast(self.r#type());
         v
     }

@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Type {
-    Integer,
+    Int,
     String,
     Custom(String),
 }
@@ -8,7 +8,7 @@ pub enum Type {
 impl From<&str> for Type {
     fn from(value: &str) -> Self {
         match value {
-            "int" => Self::Integer,
+            "int" => Self::Int,
             "string" => Self::String,
             _ => Self::Custom(value.to_owned()),
         }

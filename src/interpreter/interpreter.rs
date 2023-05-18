@@ -52,8 +52,7 @@ impl InterpreterState {
 
             if let Some(&to) = come_froms.get(&current_line) {
                 current_line = to;
-            } else if matches!(expr.expr, Expression::Conditional(_))
-                && value == Value::Integer(Int(0))
+            } else if matches!(expr.expr, Expression::Conditional(_)) && value == Value::Int(Int(0))
             {
                 // If we just evaluated a conditional to false, skip over the indented block
                 loop {
@@ -83,19 +82,19 @@ impl InterpreterState {
                     .resolve_bracketed_identifier(&eq.lhs)
                     .and_then(|ident| self.variables.get(&ident))
                     .map(|v| &v.value)
-                    .unwrap_or_else(|| &Value::Uninitialized(Type::Integer))
+                    .unwrap_or_else(|| &Value::Uninitialized(Type::Int))
                     .to_owned();
                 lhs.cast(rhs.r#type());
 
-                Value::Integer(Int((lhs == rhs) as u8))
+                Value::Int(Int((lhs == rhs) as u8))
             }
             Expression::Equality(eq) => {
                 let mut rhs = self.eval_expression(&eq.rhs);
 
                 let Some(ident) = self.resolve_bracketed_identifier(&eq.lhs) else {
                     // The LHS of the equality is invalid. Set the inner identifier to 127.
-                    self.set_variable_or_create(eq.lhs.identifier.clone(), Value::Integer(Int(127)));
-                    return Value::Integer(Int(127));
+                    self.set_variable_or_create(eq.lhs.identifier.clone(), Value::Int(Int(127)));
+                    return Value::Int(Int(127));
                 };
 
                 // If the identifier is a variable name, set the value of the variable
@@ -116,7 +115,7 @@ impl InterpreterState {
                     value
                 }
             }
-            Expression::ComeFrom(_) => Value::Integer(Int(0)),
+            Expression::ComeFrom(_) => Value::Int(Int(0)),
             Expression::Print(p) => {
                 let value = self.eval_expression(&p.0);
                 println!("{value}");
@@ -138,11 +137,11 @@ impl InterpreterState {
                 if let Some(var) = self.variables.get(ident) {
                     var.value.clone()
                 } else {
-                    Value::Uninitialized(Type::Integer)
+                    Value::Uninitialized(Type::Int)
                 }
             }
             Expression::Literal(lit) => lit.into(),
-            Expression::None => Value::Uninitialized(Type::Integer),
+            Expression::None => Value::Uninitialized(Type::Int),
         }
     }
 
