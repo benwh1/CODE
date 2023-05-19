@@ -44,11 +44,7 @@ impl Div for Int {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        if rhs.0 == 0 {
-            Self(127)
-        } else {
-            Self(self.0 / rhs.0)
-        }
+        Self(self.0.checked_div(rhs.0).unwrap_or(127))
     }
 }
 

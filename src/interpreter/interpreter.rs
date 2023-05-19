@@ -1,7 +1,10 @@
 use std::{collections::HashMap, matches};
 
 use crate::{
-    interpreter::{int::Int, r#type::Type, value::Value},
+    interpreter::{
+        r#type::Type,
+        value::{int::Int, Value},
+    },
     parser::{
         line::{
             binary_op::Operation, bracketed_identifier::BracketedIdentifier,
