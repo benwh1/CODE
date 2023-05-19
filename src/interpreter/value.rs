@@ -36,7 +36,14 @@ impl Display for Value {
 impl<'a> From<&'a Literal> for Value {
     fn from(value: &'a Literal) -> Self {
         match value {
-            Literal::Integer(IntegerLit(n)) => Self::Int(Int(*n as u8)),
+            Literal::Integer(IntegerLit(n)) => {
+                let n = *n;
+                if let Ok(n) = n.try_into() {
+                    Self::Int(Int(n))
+                } else {
+                    Self::Z(Z(n))
+                }
+            }
             Literal::String(StringLit(s)) => Self::String(s.to_owned()),
         }
     }

@@ -24,7 +24,7 @@ pub fn literal(input: &str, use_all_input: bool) -> IResult<&str, Literal> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct IntegerLit(pub(crate) i64);
+pub struct IntegerLit(pub(crate) i128);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct StringLit(pub(crate) String);
