@@ -211,8 +211,10 @@ impl Rem for Value {
     type Output = Self;
 
     fn rem(self, rhs: Self) -> Self::Output {
-        let mut v = Self::Int(self.to_int() % rhs.to_int());
-        v.cast(self.r#type());
-        v
+        match self {
+            Self::Int(n) => Self::Int(n % rhs.to_int()),
+            Self::Z(z) => Self::Z(z % rhs.to_z()),
+            Self::String(_) | Self::Uninitialized(_) => Self::Int(self.to_int() % rhs.to_int()),
+        }
     }
 }

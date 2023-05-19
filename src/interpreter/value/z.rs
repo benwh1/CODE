@@ -1,6 +1,6 @@
 use std::{
     num::ParseIntError,
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, Div, Mul, Rem, Sub},
     str::FromStr,
 };
 
@@ -36,6 +36,14 @@ impl Div for Z {
 
     fn div(self, rhs: Self) -> Self::Output {
         Self(self.0.checked_div(rhs.0).unwrap_or(i128::MAX))
+    }
+}
+
+impl Rem for Z {
+    type Output = Self;
+
+    fn rem(self, rhs: Self) -> Self::Output {
+        Self(self.0.checked_rem(rhs.0).unwrap_or(i128::MAX))
     }
 }
 
