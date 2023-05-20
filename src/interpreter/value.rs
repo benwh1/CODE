@@ -156,7 +156,7 @@ impl Sub for Value {
             Self::Int(n) => Self::Int(n - rhs.to_int()),
             Self::Z(z) => Self::Z(z - rhs.to_z()),
             Self::String(mut s) => match rhs {
-                Self::Int(_) => Self::String(s) / Self::Z(rhs.to_z()),
+                Self::Int(_) => Self::String(s) - Self::Z(rhs.to_z()),
                 Self::Z(Z(z)) => {
                     // Remove the last `z` characters from the string
                     for _ in 0..z {
