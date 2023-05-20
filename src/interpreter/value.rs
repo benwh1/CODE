@@ -1,3 +1,4 @@
+pub mod function;
 pub mod int;
 pub mod z;
 
@@ -9,7 +10,7 @@ use std::{
 use crate::{
     interpreter::{
         r#type::Type,
-        value::{int::Int, z::Z},
+        value::{function::Function, int::Int, z::Z},
     },
     parser::line::literal::{IntegerLit, Literal, StringLit},
 };
@@ -19,6 +20,7 @@ pub enum Value {
     Int(Int),
     Z(Z),
     String(String),
+    Function(Function),
     Uninitialized(Type),
 }
 
@@ -28,6 +30,7 @@ impl Display for Value {
             Value::Int(n) => f.write_str(&n.0.to_string()),
             Value::Z(z) => f.write_str(&z.0.to_string()),
             Value::String(s) => f.write_str(s),
+            Value::Function(_) => f.write_str("fctn"),
             Value::Uninitialized(_) => f.write_str("nothing"),
         }
     }
@@ -55,6 +58,7 @@ impl Value {
             Value::Int(_) => Type::Int,
             Value::Z(_) => Type::Z,
             Value::String(_) => Type::String,
+            Value::Function(_) => Type::Function,
             Value::Uninitialized(t) => t.clone(),
         }
     }
@@ -64,7 +68,7 @@ impl Value {
             Value::Int(n) => *n,
             Value::Z(z) => Int(z.0.try_into().unwrap_or(127)),
             Value::String(s) => s.parse().unwrap_or(Int(127)),
-            Value::Uninitialized(_) => Int(127),
+            Value::Function(_) | Value::Uninitialized(_) => Int(127),
         }
     }
 
@@ -73,7 +77,14 @@ impl Value {
             Value::Int(n) => Z(n.0 as i128),
             Value::Z(z) => *z,
             Value::String(s) => s.parse().unwrap_or(Z(i128::MAX)),
-            Value::Uninitialized(_) => Z(i128::MAX),
+            Value::Function(_) | Value::Uninitialized(_) => Z(i128::MAX),
+        }
+    }
+
+    pub fn to_function(&self) -> Function {
+        match self {
+            Value::Function(f) => f.to_owned(),
+            _ => Function::default(),
         }
     }
 
@@ -82,6 +93,7 @@ impl Value {
             Type::Int => *self = Value::Int(self.to_int()),
             Type::Z => *self = Value::Z(self.to_z()),
             Type::String => *self = Value::String(self.to_string()),
+            Type::Function => *self = Value::Function(self.to_function()),
             Type::Custom(_) => todo!(),
         }
     }
@@ -98,6 +110,7 @@ impl Value {
                     self / rhs
                 }
             }
+            Self::Function(_) => Self::Int(Int(127)),
             Self::Uninitialized(_) => self,
         }
     }
@@ -124,11 +137,12 @@ impl Add for Value {
                             Self::String(s)
                         }
                     }
-                    Self::Int(_) | Self::Z(_) | Self::Uninitialized(_) => {
+                    Self::Int(_) | Self::Z(_) | Self::Function(_) | Self::Uninitialized(_) => {
                         Self::String(format!("{s}{rhs}", rhs = rhs.to_string()))
                     }
                 }
             }
+            Self::Function(f) => Self::Function(f + rhs.to_function()),
             Self::Uninitialized(_) => Self::Uninitialized(rhs.r#type()),
         }
     }
@@ -150,12 +164,22 @@ impl Sub for Value {
                     }
                     Self::String(s)
                 }
-                Self::String(_) | Self::Uninitialized(_) => {
+                Self::String(_) | Self::Function(_) | Self::Uninitialized(_) => {
                     let s2 = rhs.to_string();
 
                     // Remove all instances of `s2` from `s` and collect into a new string
                     Self::String(s.split(&s2).collect())
                 }
+            },
+            Self::Function(mut f) => match rhs {
+                Self::Z(Z(z)) => {
+                    // Remove the last `z` lines from the function
+                    for _ in 0..z {
+                        f.lines.pop();
+                    }
+                    Self::Function(f)
+                }
+                _ => Self::Function(f) - Self::Z(rhs.to_z()),
             },
             Self::Uninitialized(_) => Self::Uninitialized(self.r#type()),
         }
@@ -179,6 +203,7 @@ impl Mul for Value {
                     Self::String(s.repeat(rhs.to_int().0 as usize))
                 }
             }
+            Self::Function(f) => Self::Function(f * rhs.to_z()),
             Self::Uninitialized(_) => self,
         }
     }
@@ -202,6 +227,7 @@ impl Div for Value {
                     Self::String(s.chars().take(new_len).collect())
                 }
             }
+            Self::Function(_) => Self::Int(Int(127)),
             Self::Uninitialized(_) => self,
         }
     }
@@ -215,6 +241,7 @@ impl Rem for Value {
             Self::Int(n) => Self::Int(n % rhs.to_int()),
             Self::Z(z) => Self::Z(z % rhs.to_z()),
             Self::String(_) | Self::Uninitialized(_) => Self::Int(self.to_int() % rhs.to_int()),
+            Self::Function(_) => Self::Int(Int(127)),
         }
     }
 }
