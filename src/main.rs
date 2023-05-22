@@ -14,5 +14,5 @@ fn main() {
     };
     let program = program(&source_code);
     let mut interpreter = InterpreterState::new();
-    interpreter.run(&program);
+    interpreter.run(program);
 }

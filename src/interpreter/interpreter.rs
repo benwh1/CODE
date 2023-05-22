@@ -1,14 +1,15 @@
-use std::{collections::HashMap, matches};
+use std::collections::HashMap;
 
 use crate::{
     interpreter::{
         r#type::Type,
-        value::{int::Int, Value},
+        value::{function::Function, int::Int, Value},
     },
     parser::{
         line::{
             binary_op::Operation, bracketed_identifier::BracketedIdentifier,
             expression::Expression, identifier::Identifier,
+            indented_expression::IndentedExpression,
         },
         program::Program,
     },
@@ -36,80 +37,122 @@ impl InterpreterState {
         Self::default()
     }
 
-    pub fn run(&mut self, program: &Program) {
-        // Hashmap of `from -> to` rules
-        let come_froms = program
+    pub fn run(&mut self, program: Program) {
+        let lines = program
             .expressions
-            .iter()
+            .into_iter()
             .enumerate()
+            .map(|(i, l)| (i + 1, l))
+            .collect::<Vec<_>>();
+
+        self.eval_lines(&lines);
+    }
+
+    fn eval_lines(&mut self, lines: &[(usize, IndentedExpression)]) -> Option<Value> {
+        let come_froms = lines
+            .iter()
             .filter_map(|(idx, e)| match &e.expr {
-                Expression::ComeFrom(c) => Some((c.line_number.0 as usize - 1, idx)),
+                Expression::ComeFrom(c) => Some((c.line_number.0 as usize, idx + 1)),
                 _ => None,
             })
             .collect::<HashMap<_, _>>();
 
-        let mut current_line = 0;
-        while current_line < program.expressions.len() {
-            let expr = &program.expressions[current_line];
-            let value = self.eval_expression(&expr.expr);
+        let mut value = None;
 
-            if let Some(&to) = come_froms.get(&current_line) {
-                current_line = to;
-            } else if matches!(expr.expr, Expression::Conditional(_)) && value == Value::Int(Int(0))
+        // Sort lines
+        let lines = {
+            let mut v = lines.iter().collect::<Vec<_>>();
+            v.sort_by_key(|(l, _)| l);
+            v
+        };
+
+        let mut current_idx = 0;
+
+        while let Some((line_number, expr)) = lines.get(current_idx) {
+            // If the next line in `lines` is the actual next line (i.e. the line number is
+            // `line_number + 1`), and the line is indented, then this line should be interpreted
+            // as a conditional.
+            if let Some((next_line_number, next_expr)) = lines.get(current_idx + 1)
+                && *next_line_number == line_number + 1
+                && next_expr.indent_depth > expr.indent_depth
             {
-                // If we just evaluated a conditional to false, skip over the indented block
-                loop {
-                    current_line += 1;
-                    if let Some(e) = program.expressions.get(current_line) {
-                        if e.indent_depth <= expr.indent_depth {
-                            break;
+                if self.eval_conditional((*line_number, &expr.expr)) == Int(1) {
+                    // Conditional evaluated to true, so go to the next line
+                    current_idx += 1;
+                } else {
+                    // Conditional evaluated to false, skip over the indented block
+                    match lines
+                        .iter()
+                        // Skip over all lines up to and including the current one
+                        .skip(current_idx + 1)
+                        .position(|(_, e)| e.indent_depth <= expr.indent_depth)
+                        // Add back on the `current_idx + 1` lines that we skipped
+                        .map(|l| l + current_idx + 1)
+                    {
+                        Some(new_idx) => {
+                            current_idx = new_idx;
+                            continue;
                         }
-                    } else {
-                        return;
+                        None => break,
                     }
                 }
             } else {
-                // Otherwise, just go to the next line
-                current_line += 1;
+                // Not a conditional, so just evaluate the expression normally.
+                value = Some(self.eval_expression((*line_number, &expr.expr)));
+
+                // Check for `come from` jumps
+                if let Some(&to) = come_froms.get(line_number) {
+                    // Check if the line `to` is contained in `lines`, and jump there.
+                    if let Some(new_idx) = lines.iter().position(|(l, _)| *l == to) {
+                        current_idx = new_idx;
+                    } else {
+                        break;
+                    }
+                } else {
+                    // Otherwise, just go to the next line
+                    current_idx += 1;
+                }
             }
         }
+
+        value
     }
 
-    fn eval_expression(&mut self, expr: &Expression) -> Value {
+    fn eval_expression(&mut self, (line_number, expr): (usize, &Expression)) -> Value {
         match expr {
-            Expression::Conditional(eq) => {
-                let rhs = self.eval_expression(&eq.rhs);
-
-                // Value of the LHS variable, or an uninitialized int if it's not defined
-                let mut lhs = self
-                    .resolve_bracketed_identifier(&eq.lhs)
-                    .and_then(|ident| self.variables.get(&ident))
-                    .map(|v| &v.value)
-                    .unwrap_or_else(|| &Value::Uninitialized(Type::Int))
-                    .to_owned();
-                lhs.cast(rhs.r#type());
-
-                Value::Int(Int((lhs == rhs) as u8))
-            }
             Expression::Equality(eq) => {
-                let mut rhs = self.eval_expression(&eq.rhs);
-
                 let Some(ident) = self.resolve_bracketed_identifier(&eq.lhs) else {
                     // The LHS of the equality is invalid. Set the inner identifier to 127.
                     self.set_variable_or_create(eq.lhs.identifier.clone(), Value::Int(Int(127)));
                     return Value::Int(Int(127));
                 };
 
-                // If the identifier is a variable name, set the value of the variable
-                // Otherwise, create a variable with RHS as the type
+                // If ident is a function variable, just append the line and return immediately
+                if let Some(v) = self.variables.get_mut(&ident) {
+                    if v.value == Value::Uninitialized(Type::Function) {
+                        v.value = Value::Function(Function::default());
+                    }
+
+                    if let Value::Function(f) = &mut v.value {
+                        let a = (line_number, *eq.rhs.clone());
+                        f.lines.push(a);
+                        return Value::Int(Int(0));
+                    }
+                }
+
+                // Eval the RHS
+                let mut rhs = self.eval_expression((line_number, &eq.rhs.expr));
+
                 if let Some(var) = self.variables.get_mut(&ident) {
+                    // We already dealt with the case of `var` being a function, so we can just set
+                    // the value here
                     rhs.cast(var.value.r#type());
                     var.set_value(rhs.clone());
 
                     rhs
                 } else {
-                    // If the RHS is an identifier, use it as the type name
-                    let var_type = match eq.rhs.as_ref() {
+                    // Create a variable with RHS as the type name
+                    let var_type = match &eq.rhs.expr {
                         Expression::Identifier(ident) => Type::from(ident.0.as_ref()),
                         _ => todo!(),
                     };
@@ -120,13 +163,13 @@ impl InterpreterState {
             }
             Expression::ComeFrom(_) => Value::Int(Int(0)),
             Expression::Print(p) => {
-                let value = self.eval_expression(&p.0);
+                let value = self.eval_expression((line_number, &p.0));
                 println!("{value}");
                 value
             }
             Expression::BinaryOp(op) => {
-                let lhs = self.eval_expression(&op.lhs);
-                let rhs = self.eval_expression(&op.rhs);
+                let lhs = self.eval_expression((line_number, &op.lhs));
+                let rhs = self.eval_expression((line_number, &op.rhs));
                 match op.op {
                     Operation::Add => lhs + rhs,
                     Operation::Sub => lhs - rhs,
@@ -138,7 +181,13 @@ impl InterpreterState {
             }
             Expression::Identifier(ident) => {
                 if let Some(var) = self.variables.get(ident) {
-                    var.value.clone()
+                    if let Value::Function(f) = &var.value {
+                        // Variable is a function, so call the function
+                        self.call_function(&f.clone())
+                    } else {
+                        // Not a function, so return the value of the variable
+                        var.value.clone()
+                    }
                 } else {
                     Value::Uninitialized(Type::Int)
                 }
@@ -146,6 +195,34 @@ impl InterpreterState {
             Expression::Literal(lit) => lit.into(),
             Expression::None => Value::Uninitialized(Type::Int),
         }
+    }
+
+    pub fn eval_conditional(&mut self, (line_number, expr): (usize, &Expression)) -> Int {
+        match expr {
+            Expression::Equality(eq) => {
+                let rhs = self.eval_expression((line_number, &eq.rhs.expr));
+
+                // Value of the LHS variable, or an uninitialized int if it's not defined
+                let mut lhs = self
+                    .resolve_bracketed_identifier(&eq.lhs)
+                    .and_then(|ident| self.variables.get(&ident))
+                    .map(|v| &v.value)
+                    .unwrap_or_else(|| &Value::Uninitialized(Type::Int))
+                    .to_owned();
+                lhs.cast(rhs.r#type());
+
+                Int((lhs == rhs) as u8)
+            }
+            Expression::BinaryOp(_) => todo!(),
+            Expression::Literal(_) => todo!(),
+            Expression::Identifier(_) => todo!(),
+            Expression::ComeFrom(_) | Expression::Print(_) | Expression::None => Int(0),
+        }
+    }
+
+    pub fn call_function(&mut self, function: &Function) -> Value {
+        self.eval_lines(&function.lines)
+            .unwrap_or(Value::Int(Int(127)))
     }
 
     pub fn create_variable(&mut self, name: Identifier, value: Value) {

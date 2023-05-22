@@ -5,13 +5,13 @@ use nom::{
 
 use crate::parser::line::{
     bracketed_identifier::{bracketed_identifier, BracketedIdentifier},
-    expression::{expression, Expression},
+    indented_expression::{indented_expression, IndentedExpression},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Equality {
     pub(crate) lhs: BracketedIdentifier,
-    pub(crate) rhs: Box<Expression>,
+    pub(crate) rhs: Box<IndentedExpression>,
 }
 
 pub fn equality(input: &str) -> IResult<&str, Equality> {
@@ -24,7 +24,7 @@ pub fn equality(input: &str) -> IResult<&str, Equality> {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }
 
-    let (result, rhs) = expression(rhs, true)?;
+    let (result, rhs) = indented_expression(rhs, true)?;
     if !result.is_empty() {
         return Err(nom::Err::Failure(Error::new(result, ErrorKind::Fail)));
     }

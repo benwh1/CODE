@@ -17,9 +17,6 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Expression {
-    // Conditionals are not parsed here because they have the same syntax as equality. We parse as
-    // `Equality` first, and then `Program` converts the relevant `Equality`s to `Conditional`s.
-    Conditional(Equality),
     Equality(Equality),
     ComeFrom(ComeFrom),
     Print(Print),
