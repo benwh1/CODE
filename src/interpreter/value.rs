@@ -137,9 +137,7 @@ impl Add for Value {
                             Self::String(s)
                         }
                     }
-                    Self::Int(_) | Self::Z(_) | Self::Function(_) | Self::Uninitialized(_) => {
-                        Self::String(format!("{s}{rhs}", rhs = rhs.to_string()))
-                    }
+                    _ => Self::String(format!("{s}{rhs}", rhs = rhs.to_string())),
                 }
             }
             Self::Function(f) => Self::Function(f + rhs.to_function()),
@@ -164,7 +162,7 @@ impl Sub for Value {
                     }
                     Self::String(s)
                 }
-                Self::String(_) | Self::Function(_) | Self::Uninitialized(_) => {
+                _ => {
                     let s2 = rhs.to_string();
 
                     // Remove all instances of `s2` from `s` and collect into a new string
